@@ -1,0 +1,61 @@
+body {
+    background-color: white;
+}
+#cabecera {
+    background-color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10%;  
+}
+form.formularioDatos {
+    position: absolute;
+    left: 0;
+    top: 0;
+
+}
+form.formularioStats {
+    position: absolute;
+    left: 80%;
+    top: 0;
+
+}
+h1.tituloWeb {
+    position: absolute;
+    font-family: "Times New Roman";
+    font-size: 30px;
+    top:0;
+    left:15%;
+    color:black;
+}
+#bizis {
+    background-color: white;
+    position: absolute;
+    top: 10%;
+    left: 0;
+    width: 10%;
+    height: 90%;  
+}
+fieldset.fiel {
+		top: 10%;
+		height: 100%;
+		width: 10%;
+		
+}
+#googleMap {
+    background-color: white;
+    position: absolute;
+    top: 10%;
+    left: 25%;
+    width: 50%;
+    height: 90%;  
+}
+#Meteo {
+    background-color: white;
+    position: absolute;
+    top: 10%;
+    left: 75%;
+    width: 25%;
+    height: 90%;  
+}

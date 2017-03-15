@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title> Sistema de control estadistico </title>
+		<script src="//www.parsecdn.com/js/parse-1.4.2.min.js"></script>
+		<script src='Chart.min.js'></script>
+	</head>
+	<body>
+		
+		 <!-- Requests per day chart -->
+		 <table style="width:100%">
+			<tr>
+				<td>
+					<div width="600" height="500" style="text-align:center;">
+						<p> Requests per Day </p>
+						<canvas id="requestsPerDay" width="600" height="400"></canvas>
+					</div>
+				</td>
+				<td>
+					<div width="600" height="500" style="text-align:center;">
+						<p> Requests per Day and Action </p>
+						<p>
+						<label style="color: rgb(0,0,150);"> Weather Action</label>
+						<label style="color: rgb(150,0,0);"> Bicycle Action</label>
+						<label style="color: rgb(0,150,0);"> Other Action</label>
+						</p>
+						<canvas id="RequestsPerDayAndActionChart" width="600" height="400"></canvas>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<!-- Browsers used chart -->
+					<div width="600" height="500" style="text-align:center;">
+						<p> Browsers Used </p>
+						<canvas id="BrowserNumberChart" width="600" height="400"></canvas>
+					</div>
+				</td>
+				<td>
+				<!-- OS used chart -->
+					<div width="600" height="500" style="text-align:center;">
+						<p> OS Used </p>
+						<canvas id="OSNumberChart" width="600" height="400"></canvas>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan=2>
+					<!-- Cities involved graph -->
+					<div width="600" height="500" style="text-align:center;">
+						<p> Number of requests per city </p>
+						<canvas id="CityRequestChart" width="600" height="400"></canvas>
+					</div>
+				</td>
+			</tr>
+		</table>
+		
+        <script>
+			Parse.initialize("wRs86SgBLKJBaQM4Y6fgDgBUvXTO3H7mzZ7Acqq1", "FoV30kCHmnqtitlixGVZXy23NPQitzCojBGBwn6Y");
+			var LogData=Parse.Object.extend("LogData");
+			var query=new Parse.Query(LogData);
+			query.find({
+			success: function(results) 
+			{
+				/*************************************** REQUESTS PER DAY GRAPH **************************************************************/
+				var requestsPerDay={};
+				results.forEach(function(name){
+					if(name.get('AccessDate') != undefined) {
+						var index=name.get('AccessDate').getFullYear()+'-'+((name.get('AccessDate').getMonth())+1)+'-'+name.get('AccessDate').getDate();
+						if(requestsPerDay[index]==undefined) requestsPerDay[index]={meteorologia:0,bicis:0,other:0};
+						
+						if(name.get('Action') != undefined && name.get('Action')=='CONSULTA_METEOROLOGIA') requestsPerDay[index].meteorologia=requestsPerDay[index].meteorologia+1;
+						else if(name.get('Action') != undefined && name.get('Action')=='CONSULTA_RUTA_BICI') requestsPerDay[index].bicis=requestsPerDay[index].bicis+1;
+						else requestsPerDay[index].other=requestsPerDay[index].other+1;
+					}
+				});
+				var labels=[];
+				for (var key in requestsPerDay) {
+					labels.push(key);
+				}
+				labels.sort();
+				var datatotal=[];
+				var dataactionconsultameteorologia=[];
+				var dataactionconsultabicis=[];
+				var dataactionotra=[];
+				for (var i=0;i<labels.length;i++) {
+					datatotal.push(requestsPerDay[labels[i]].meteorologia+requestsPerDay[labels[i]].bicis+requestsPerDay[labels[i]].other);
+					dataactionconsultameteorologia.push(requestsPerDay[labels[i]].meteorologia);
+					dataactionconsultabicis.push(requestsPerDay[labels[i]].bicis);
+					dataactionotra.push(requestsPerDay[labels[i]].other);
+				}
+				// line chart data
+				var requestsPerDayData = {
+					labels : labels,
+					datasets : [
+					{
+						label: "Requests per day",
+						fillColor : "rgba(172,194,132,0.4)",
+						strokeColor : "#ACC26D",
+						pointColor : "#fff",
+						pointStrokeColor : "#9DB86D",
+						data : datatotal
+					}
+				]
+				}
+				// get line chart canvas
+				var requestsPerDayChart = document.getElementById('requestsPerDay').getContext('2d');
+				// draw line chart
+				new Chart(requestsPerDayChart).Line(requestsPerDayData);
+				
+				requestsPerDayData = {
+					labels : labels,
+					datasets : [
+					{
+						label: "Weather requests",
+						fillColor : "rgba(98,110,194,0.4)",
+						strokeColor : "#ACC26D",
+						pointColor : "#fff",
+						pointStrokeColor : "#9DB86D",
+						data : dataactionconsultameteorologia
+					},
+					{
+						label: "Bycicle requests",
+						fillColor : "rgba(192,100,80,0.4)",
+						strokeColor : "#ACC26D",
+						pointColor : "#fff",
+						pointStrokeColor : "#9DB86D",
+						data : dataactionconsultabicis
+					},
+					{
+						label: "Other requests",
+						fillColor : "rgba(150,194,140,0.4)",
+						strokeColor : "#ACC26D",
+						pointColor : "#fff",
+						pointStrokeColor : "#9DB86D",
+						data : dataactionotra
+					}
+				]
+				}
+				// get line chart canvas
+				var requestByDayAndActionChart = document.getElementById('RequestsPerDayAndActionChart').getContext('2d');
+				// draw line chart
+				new Chart(requestByDayAndActionChart).Line(requestsPerDayData);
+				
+				/************************************************** BROWSERS USED CHART ***********************************************************/
+				var chartDefaultColors=["#4D4D4D","#5DA5DA",
+							"#FAA43A",
+							"#60BD68",
+							"#F17CB0",
+							"#B2912F",
+							"#B276B2",
+							"#DECF3F",
+							"#F15854"];
+				shuffleArray(chartDefaultColors);
+				drawPieChart(results,'AccessBrowser',"BrowserNumberChart",chartDefaultColors);
+				
+				/*********************************************** OS CHART *************************************************************/
+				shuffleArray(chartDefaultColors);
+				drawPieChart(results,'AccessOS','OSNumberChart',chartDefaultColors);
+				
+				/*********************************************** CITIES CHART *************************************************************/
+				shuffleArray(chartDefaultColors);
+				drawPieChart(results,'City','CityRequestChart',chartDefaultColors);
+				
+				/*// bar chart data
+				var barData = {
+					labels : ["January","February","March","April","May","June"],
+					datasets : [
+						{
+							fillColor : "#48A497",
+							strokeColor : "#48A4D1",
+							data : [456,479,324,569,702,600]
+						},
+						{
+							fillColor : "rgba(73,188,170,0.4)",
+							strokeColor : "rgba(72,174,209,0.4)",
+							data : [364,504,605,400,345,320]
+						}
+					]
+				}
+				// get bar chart canvas
+				var income = document.getElementById("income").getContext("2d");
+				// draw bar chart
+				new Chart(income).Bar(barData);*/
+			},
+
+			error: function(error) 
+			{
+				alert(error);
+			}
+			});
+			function drawPieChart(results,resultsTarget,chartTarget,chartDefaultColors)
+			{
+				var OSNumber={};
+				results.forEach(function(name){
+					if(name.get(resultsTarget) != undefined) {
+						if(OSNumber[name.get(resultsTarget)]==undefined) OSNumber[name.get(resultsTarget)]=1;
+						else OSNumber[name.get(resultsTarget)]=OSNumber[name.get(resultsTarget)]+1;
+					}
+				});
+				var cont=0;
+				var othercont=0;
+				var pieData=[];
+				var sortedOSNumber=sortByNumber(OSNumber);
+				shuffleArray(chartDefaultColors);
+				for(var i=0;i<sortedOSNumber.length;i++)
+				{
+					if(i>7){
+					othercont+=sortedOSNumber[i]["number"];
+					}
+					else{
+					pieData.push({value: sortedOSNumber[i]["number"],color:chartDefaultColors[i],label:sortedOSNumber[i]["key"]});
+					cont++;
+					}
+				}
+				if(cont>7){
+					pieData.push({value: othercont,color:chartDefaultColors[cont],label:'Others'});
+				}
+
+				// get pie chart canvas
+				var OSNumberChart= document.getElementById(chartTarget).getContext("2d");
+				
+				// pie chart options
+				var pieOptions = {
+					segmentShowStroke : false,
+					animateScale : true
+				}
+				
+				// draw pie chart
+				new Chart(OSNumberChart).Pie(pieData, pieOptions);
+			}
+			function sortByNumber(map)
+			{
+				var auxarray=[]; 
+				for(var key in map)
+				{
+					auxarray.push({key:key,number:map[key]});
+				}
+				auxarray.sort(function(a, b) {
+					return (b["number"] > a["number"]) ? 1 : ((b["number"] < a["number"]) ? -1 : 0);
+				});
+				
+				return auxarray;
+			}
+			/**
+			* Randomize array element order in-place.
+			* Using Fisher-Yates shuffle algorithm.
+			*/
+			function shuffleArray(array) {
+				for (var i = array.length - 1; i > 0; i--) {
+					var j = Math.floor(Math.random() * (i + 1));
+					var temp = array[i];
+					array[i] = array[j];
+					array[j] = temp;
+				}
+				return array;
+			}
+        </script>
+    </body>
+</html>
